@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home - Settings</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-home"></i>
+                <span>Smart Home</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="devices.html"><i class="fas fa-plug"></i> Devices</a></li>
+                <li><a href="automations.html"><i class="fas fa-robot"></i> Automations</a></li>
+                <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                <li><a href="api-test.html"><i class="fas fa-code"></i> API Test</a></li>
+                <li class="active"><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h1>Settings</h1>
+                <div class="user-info">
+                    <span id="username">User</span>
+                    <button id="logoutBtn">Logout</button>
+                </div>
+            </header>
+
+            <div class="settings-container">
+                <!-- User Profile Section -->
+                <div class="settings-section">
+                    <h2>User Profile</h2>
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" placeholder="Your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" placeholder="Your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="current-password">Current Password</label>
+                            <input type="password" id="current-password" placeholder="Current password">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-password">New Password</label>
+                            <input type="password" id="new-password" placeholder="New password">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm-password">Confirm New Password</label>
+                            <input type="password" id="confirm-password" placeholder="Confirm new password">
+                        </div>
+                        <button class="save-btn" id="save-profile">Save Profile</button>
+                    </div>
+                </div>
+
+                <!-- Notification Settings -->
+                <div class="settings-section">
+                    <h2>Notifications</h2>
+                    <div class="settings-form">
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="email-notifications">
+                                Email Notifications
+                            </label>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="push-notifications">
+                                Push Notifications
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>Notification Types</label>
+                            <div class="checkbox-group">
+                                <label>
+                                    <input type="checkbox" id="notify-device-status">
+                                    Device Status Changes
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="notify-energy">
+                                    High Energy Usage
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="notify-security">
+                                    Security Alerts
+                                </label>
+                            </div>
+                        </div>
+                        <button class="save-btn" id="save-notifications">Save Notification Settings</button>
+                    </div>
+                </div>
+
+                <!-- System Settings -->
+                <div class="settings-section">
+                    <h2>System Settings</h2>
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label for="temperature-unit">Temperature Unit</label>
+                            <select id="temperature-unit">
+                                <option value="fahrenheit">Fahrenheit (°F)</option>
+                                <option value="celsius">Celsius (°C)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="timezone">Timezone</label>
+                            <select id="timezone">
+                                <option value="UTC">UTC</option>
+                                <option value="EST">Eastern Time (EST)</option>
+                                <option value="CST">Central Time (CST)</option>
+                                <option value="MST">Mountain Time (MST)</option>
+                                <option value="PST">Pacific Time (PST)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="theme">Theme</label>
+                            <select id="theme">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                                <option value="system">System Default</option>
+                            </select>
+                        </div>
+                        <button class="save-btn" id="save-system">Save System Settings</button>
+                    </div>
+                </div>
+
+                <!-- API Settings -->
+                <div class="settings-section">
+                    <h2>API Settings</h2>
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label>API Key</label>
+                            <div class="api-key-container">
+                                <input type="text" id="api-key" readonly>
+                                <button class="copy-btn" id="copy-api-key">Copy</button>
+                                <button class="regenerate-btn" id="regenerate-api-key">Regenerate</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Webhook URL</label>
+                            <input type="url" id="webhook-url" placeholder="https://your-webhook-url.com">
+                        </div>
+                        <button class="save-btn" id="save-api">Save API Settings</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Socket.io connection
+        const socket = io('http://localhost:3002');
+
+        // Authentication check
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Set username
+        const username = localStorage.getItem('username');
+        if (username) {
+            document.getElementById('username').textContent = username;
+        }
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = 'login.html';
+        });
+
+        // Load user settings
+        async function loadSettings() {
+            try {
+                const response = await fetch('http://localhost:3002/api/settings', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const settings = await response.json();
+
+                // Populate form fields
+                document.getElementById('name').value = settings.name || '';
+                document.getElementById('email').value = settings.email || '';
+                document.getElementById('email-notifications').checked = settings.notifications.email || false;
+                document.getElementById('push-notifications').checked = settings.notifications.push || false;
+                document.getElementById('notify-device-status').checked = settings.notifications.types.deviceStatus || false;
+                document.getElementById('notify-energy').checked = settings.notifications.types.energy || false;
+                document.getElementById('notify-security').checked = settings.notifications.types.security || false;
+                document.getElementById('temperature-unit').value = settings.system.temperatureUnit || 'fahrenheit';
+                document.getElementById('timezone').value = settings.system.timezone || 'UTC';
+                document.getElementById('theme').value = settings.system.theme || 'light';
+                document.getElementById('api-key').value = settings.api.key || '';
+                document.getElementById('webhook-url').value = settings.api.webhookUrl || '';
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        // Save profile settings
+        document.getElementById('save-profile').addEventListener('click', async () => {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (newPassword && newPassword !== confirmPassword) {
+                alert('New passwords do not match');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3002/api/settings/profile', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        email,
+                        currentPassword,
+                        newPassword
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Profile updated successfully');
+                    // Clear password fields
+                    document.getElementById('current-password').value = '';
+                    document.getElementById('new-password').value = '';
+                    document.getElementById('confirm-password').value = '';
+                } else {
+                    alert('Error updating profile');
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Error updating profile');
+            }
+        });
+
+        // Save notification settings
+        document.getElementById('save-notifications').addEventListener('click', async () => {
+            const settings = {
+                email: document.getElementById('email-notifications').checked,
+                push: document.getElementById('push-notifications').checked,
+                types: {
+                    deviceStatus: document.getElementById('notify-device-status').checked,
+                    energy: document.getElementById('notify-energy').checked,
+                    security: document.getElementById('notify-security').checked
+                }
+            };
+
+            try {
+                const response = await fetch('http://localhost:3002/api/settings/notifications', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                if (response.ok) {
+                    alert('Notification settings updated successfully');
+                } else {
+                    alert('Error updating notification settings');
+                }
+            } catch (error) {
+                console.error('Error updating notification settings:', error);
+                alert('Error updating notification settings');
+            }
+        });
+
+        // Save system settings
+        document.getElementById('save-system').addEventListener('click', async () => {
+            const settings = {
+                temperatureUnit: document.getElementById('temperature-unit').value,
+                timezone: document.getElementById('timezone').value,
+                theme: document.getElementById('theme').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:3002/api/settings/system', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                if (response.ok) {
+                    alert('System settings updated successfully');
+                    // Apply theme immediately
+                    if (settings.theme === 'dark') {
+                        document.body.classList.add('dark-theme');
+                    } else {
+                        document.body.classList.remove('dark-theme');
+                    }
+                } else {
+                    alert('Error updating system settings');
+                }
+            } catch (error) {
+                console.error('Error updating system settings:', error);
+                alert('Error updating system settings');
+            }
+        });
+
+        // API settings
+        document.getElementById('copy-api-key').addEventListener('click', () => {
+            const apiKey = document.getElementById('api-key');
+            apiKey.select();
+            document.execCommand('copy');
+            alert('API key copied to clipboard');
+        });
+
+        document.getElementById('regenerate-api-key').addEventListener('click', async () => {
+            if (confirm('Are you sure you want to regenerate your API key? This will invalidate the current key.')) {
+                try {
+                    const response = await fetch('http://localhost:3002/api/settings/regenerate-key', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const { key } = await response.json();
+                        document.getElementById('api-key').value = key;
+                        alert('API key regenerated successfully');
+                    } else {
+                        alert('Error regenerating API key');
+                    }
+                } catch (error) {
+                    console.error('Error regenerating API key:', error);
+                    alert('Error regenerating API key');
+                }
+            }
+        });
+
+        document.getElementById('save-api').addEventListener('click', async () => {
+            const settings = {
+                webhookUrl: document.getElementById('webhook-url').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:3002/api/settings/api', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                if (response.ok) {
+                    alert('API settings updated successfully');
+                } else {
+                    alert('Error updating API settings');
+                }
+            } catch (error) {
+                console.error('Error updating API settings:', error);
+                alert('Error updating API settings');
+            }
+        });
+
+        // Load settings when page loads
+        loadSettings();
+    </script>
+</body>
+</html> 

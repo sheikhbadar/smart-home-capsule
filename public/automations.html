@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automations - Smart Home</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/app.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .automation-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .automation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .automation-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .automation-settings {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .time-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 120px;
+        }
+
+        .temperature-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 80px;
+        }
+
+        /* Switch styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Notification styles */
+        #notificationContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .notification {
+            padding: 15px 25px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success { border-left: 4px solid #4CAF50; }
+        .notification.warning { border-left: 4px solid #FFC107; }
+        .notification.error { border-left: 4px solid #F44336; }
+        .notification.info { border-left: 4px solid #2196F3; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <i class="material-icons">home</i>
+            <span>Smart Home</span>
+        </div>
+        <nav>
+            <div class="nav-item" data-page="index">
+                <i class="material-icons">dashboard</i>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" data-page="devices">
+                <i class="material-icons">devices</i>
+                <span>Devices</span>
+            </div>
+            <div class="nav-item active" data-page="automations">
+                <i class="material-icons">schedule</i>
+                <span>Automations</span>
+            </div>
+            <div class="nav-item" data-page="analytics">
+                <i class="material-icons">insights</i>
+                <span>Analytics</span>
+            </div>
+            <div class="nav-item" data-page="settings">
+                <i class="material-icons">settings</i>
+                <span>Settings</span>
+            </div>
+        </nav>
+        <div class="user-profile">
+            <div class="avatar">
+                <i class="material-icons">person</i>
+            </div>
+            <div class="user-info">
+                <div class="user-name">Guest User</div>
+                <div class="user-email">guest@example.com</div>
+                <button class="logout-button">Logout</button>
+            </div>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="header">
+            <h1 class="page-title">Automations</h1>
+            <button class="btn" onclick="showAddAutomationModal()">
+                <i class="material-icons">add</i>
+                Add Automation
+            </button>
+        </div>
+            
+            <div id="notificationContainer"></div>
+
+        <div class="automations-grid">
+            <!-- Morning Routine -->
+            <div class="automation-card">
+                <div class="automation-header">
+                    <div class="automation-title">Morning Routine</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked onchange="toggleAutomation('morning')">
+                        <span class="toggle-slider"></span>
+                        </label>
+                </div>
+                <div class="automation-settings">
+                    <label>Time: <input type="time" value="07:00" class="time-input"></label>
+                    <label>Temperature: <input type="number" value="72" class="temperature-input">°F</label>
+                    <div class="device-list">
+                        <div>• Turn on Living Room Lights (50%)</div>
+                        <div>• Set Thermostat to 72°F</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evening Mode -->
+            <div class="automation-card">
+                <div class="automation-header">
+                    <div class="automation-title">Evening Mode</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked onchange="toggleAutomation('evening')">
+                        <span class="toggle-slider"></span>
+                        </label>
+                </div>
+                <div class="automation-settings">
+                    <label>Time: <input type="time" value="18:00" class="time-input"></label>
+                    <label>Temperature: <input type="number" value="70" class="temperature-input">°F</label>
+                    <div class="device-list">
+                        <div>• Dim Living Room Lights (30%)</div>
+                        <div>• Turn on Kitchen Lights</div>
+                        <div>• Set Thermostat to 70°F</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Night Mode -->
+            <div class="automation-card">
+                <div class="automation-header">
+                    <div class="automation-title">Night Mode</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked onchange="toggleAutomation('night')">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="automation-settings">
+                    <label>Time: <input type="time" value="22:00" class="time-input"></label>
+                    <label>Temperature: <input type="number" value="68" class="temperature-input">°F</label>
+                    <div class="device-list">
+                        <div>• Turn off all lights</div>
+                        <div>• Set Thermostat to 68°F</div>
+                        <div>• Enable Eco Mode</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Automation Modal -->
+        <div id="addAutomationModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Add New Automation</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" id="automationName" placeholder="Enter automation name">
+                    </div>
+                    <div class="form-group">
+                        <label>Time:</label>
+                        <input type="time" id="automationTime">
+                    </div>
+                    <div class="form-group">
+                        <label>Devices:</label>
+                        <div class="device-selector">
+                            <div class="device-option">
+                                <input type="checkbox" id="livingRoomLights">
+                                <label for="livingRoomLights">Living Room Lights</label>
+                                <input type="range" min="0" max="100" value="100">
+                            </div>
+                            <div class="device-option">
+                                <input type="checkbox" id="kitchenLights">
+                                <label for="kitchenLights">Kitchen Lights</label>
+                                <input type="range" min="0" max="100" value="100">
+                            </div>
+                            <div class="device-option">
+                                <input type="checkbox" id="thermostat">
+                                <label for="thermostat">Thermostat</label>
+                                <input type="number" value="72" min="60" max="85">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" onclick="saveAutomation()">Save</button>
+                    <button class="btn btn-secondary" onclick="closeAutomationModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        // Initialize Socket.IO connection with authentication
+        const socket = io({
+            auth: {
+                token: token
+            }
+        });
+
+        // Handle connection events
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            socket.emit('requestInitialState');
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+            showNotification('error', 'Connection Error', error.message);
+        });
+
+        // Handle automation updates
+        socket.on('automationUpdated', (data) => {
+            if (data.type === 'morning') {
+                document.querySelector('.toggle-switch input[type="checkbox"]').checked = data.settings.state;
+                if (data.settings.schedule) {
+                    const hours = Math.floor(data.settings.schedule / 60);
+                    const minutes = data.settings.schedule % 60;
+                    document.querySelector('.time-input').value = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                }
+            } else if (data.type === 'evening') {
+                document.querySelector('.toggle-switch input[type="checkbox"]').checked = data.settings.state;
+                if (data.settings.schedule) {
+                    const hours = Math.floor(data.settings.schedule / 60);
+                    const minutes = data.settings.schedule % 60;
+                    document.querySelector('.time-input').value = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                }
+            } else if (data.type === 'night') {
+                document.querySelector('.toggle-switch input[type="checkbox"]').checked = data.settings.state;
+                if (data.settings.schedule) {
+                    const hours = Math.floor(data.settings.schedule / 60);
+                    const minutes = data.settings.schedule % 60;
+                    document.querySelector('.time-input').value = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                }
+            }
+            showNotification('success', 'Automation Updated', data.message);
+        });
+
+        // Automation functions
+        function showAddAutomationModal() {
+            const modal = document.getElementById('addAutomationModal');
+            modal.style.display = 'block';
+        }
+
+        function closeAutomationModal() {
+            const modal = document.getElementById('addAutomationModal');
+            modal.style.display = 'none';
+        }
+
+        function saveAutomation() {
+            const name = document.getElementById('automationName').value;
+            const time = document.getElementById('automationTime').value;
+            
+            // Create new automation card
+            const automation = {
+                name: name,
+                time: time,
+                devices: getSelectedDevices()
+            };
+            
+            // Send to server
+            socket.emit('createAutomation', automation);
+            
+            // Close modal
+            closeAutomationModal();
+        }
+
+        function getSelectedDevices() {
+            const devices = [];
+            const deviceOptions = document.querySelectorAll('.device-option');
+            
+            deviceOptions.forEach(option => {
+                const checkbox = option.querySelector('input[type="checkbox"]');
+                if (checkbox.checked) {
+                    const value = option.querySelector('input[type="range"], input[type="number"]').value;
+                    devices.push({
+                        id: checkbox.id,
+                        value: value
+                    });
+                }
+            });
+            
+            return devices;
+        }
+
+        function toggleAutomation(id) {
+            // Send to server
+            socket.emit('toggleAutomation', { id: id });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('addAutomationModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Close modal when clicking X
+        document.querySelector('.close').onclick = function() {
+            closeAutomationModal();
+        }
+
+        // Notification System
+        function showNotification(type, title, message) {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const icon = document.createElement('span');
+            icon.className = 'notification-icon';
+            switch(type) {
+                case 'success': icon.innerHTML = '✓'; break;
+                case 'warning': icon.innerHTML = '⚠'; break;
+                case 'error': icon.innerHTML = '✕'; break;
+                case 'info': icon.innerHTML = 'ℹ'; break;
+            }
+            
+            const content = document.createElement('div');
+            content.className = 'notification-content';
+            content.innerHTML = `
+                <div class="notification-title">${title}</div>
+                <div class="notification-message">${message}</div>
+            `;
+            
+            notification.appendChild(icon);
+            notification.appendChild(content);
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        }
+    </script>
+</body>
+</html> 

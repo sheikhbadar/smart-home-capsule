@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home - Analytics</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-home"></i>
+                <span>Smart Home</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="devices.html"><i class="fas fa-plug"></i> Devices</a></li>
+                <li><a href="automations.html"><i class="fas fa-robot"></i> Automations</a></li>
+                <li class="active"><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                <li><a href="api-test.html"><i class="fas fa-code"></i> API Test</a></li>
+                <li><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h1>Analytics</h1>
+                <div class="user-info">
+                    <span id="username">User</span>
+                    <button id="logoutBtn">Logout</button>
+                </div>
+            </header>
+
+            <div class="analytics-grid">
+                <!-- Energy Usage Section -->
+                <div class="analytics-section">
+                    <h2>Energy Usage</h2>
+                    <div class="chart-container">
+                        <canvas id="energyChart"></canvas>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Current Usage</h3>
+                            <p id="current-usage">0 W</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Daily Usage</h3>
+                            <p id="daily-usage">0 kWh</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Monthly Usage</h3>
+                            <p id="monthly-usage">0 kWh</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Usage Section -->
+                <div class="analytics-section">
+                    <h2>Device Usage</h2>
+                    <div class="chart-container">
+                        <canvas id="deviceUsageChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Temperature Trends -->
+                <div class="analytics-section">
+                    <h2>Temperature Trends</h2>
+                    <div class="chart-container">
+                        <canvas id="temperatureChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Cost Analysis -->
+                <div class="analytics-section">
+                    <h2>Cost Analysis</h2>
+                    <div class="chart-container">
+                        <canvas id="costChart"></canvas>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Daily Cost</h3>
+                            <p id="daily-cost">$0.00</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Monthly Cost</h3>
+                            <p id="monthly-cost">$0.00</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Yearly Cost</h3>
+                            <p id="yearly-cost">$0.00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Socket.io connection
+        const socket = io('http://localhost:3002');
+
+        // Authentication check
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Set username
+        const username = localStorage.getItem('username');
+        if (username) {
+            document.getElementById('username').textContent = username;
+        }
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = 'login.html';
+        });
+
+        // Chart configurations
+        const energyChart = new Chart(document.getElementById('energyChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Energy Usage (W)',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const deviceUsageChart = new Chart(document.getElementById('deviceUsageChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Living Room Lights', 'Kitchen Lights', 'Thermostat'],
+                datasets: [{
+                    label: 'Usage (hours)',
+                    data: [0, 0, 0],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const temperatureChart = new Chart(document.getElementById('temperatureChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Temperature (°F)',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+
+        const costChart = new Chart(document.getElementById('costChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Cost ($)',
+                    data: [],
+                    borderColor: 'rgb(54, 162, 235)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Socket event listeners
+        socket.on('deviceStateUpdated', (state) => {
+            // Update energy usage
+            document.getElementById('current-usage').textContent = `${state.environment.energy.current} W`;
+            document.getElementById('daily-usage').textContent = `${state.environment.energy.daily} kWh`;
+            document.getElementById('monthly-usage').textContent = `${state.environment.energy.monthly} kWh`;
+
+            // Update charts
+            updateCharts(state);
+        });
+
+        function updateCharts(state) {
+            // Update energy chart
+            const now = new Date();
+            const timeLabel = `${now.getHours()}:${now.getMinutes()}`;
+            
+            energyChart.data.labels.push(timeLabel);
+            energyChart.data.datasets[0].data.push(state.environment.energy.current);
+            
+            if (energyChart.data.labels.length > 10) {
+                energyChart.data.labels.shift();
+                energyChart.data.datasets[0].data.shift();
+            }
+            
+            energyChart.update();
+
+            // Update device usage chart
+            const deviceUsage = calculateDeviceUsage(state);
+            deviceUsageChart.data.datasets[0].data = deviceUsage;
+            deviceUsageChart.update();
+
+            // Update temperature chart
+            temperatureChart.data.labels.push(timeLabel);
+            temperatureChart.data.datasets[0].data.push(state.environment.temperature);
+            
+            if (temperatureChart.data.labels.length > 10) {
+                temperatureChart.data.labels.shift();
+                temperatureChart.data.datasets[0].data.shift();
+            }
+            
+            temperatureChart.update();
+
+            // Update cost chart
+            const cost = calculateCost(state);
+            costChart.data.labels.push(timeLabel);
+            costChart.data.datasets[0].data.push(cost);
+            
+            if (costChart.data.labels.length > 10) {
+                costChart.data.labels.shift();
+                costChart.data.datasets[0].data.shift();
+            }
+            
+            costChart.update();
+
+            // Update cost statistics
+            document.getElementById('daily-cost').textContent = `$${cost.toFixed(2)}`;
+            document.getElementById('monthly-cost').textContent = `$${(cost * 30).toFixed(2)}`;
+            document.getElementById('yearly-cost').textContent = `$${(cost * 365).toFixed(2)}`;
+        }
+
+        function calculateDeviceUsage(state) {
+            // This is a simplified calculation - in a real app, you'd track actual usage time
+            return [
+                state.devices.livingRoomLights.on ? 1 : 0,
+                state.devices.kitchenLights.on ? 1 : 0,
+                state.devices.thermostat.on ? 1 : 0
+            ];
+        }
+
+        function calculateCost(state) {
+            // Assuming $0.12 per kWh
+            const kWh = state.environment.energy.current / 1000; // Convert W to kW
+            return kWh * 0.12;
+        }
+
+        // Initial state fetch
+        fetch('http://localhost:3002/api/state')
+            .then(response => response.json())
+            .then(state => {
+                updateCharts(state);
+            });
+    </script>
+</body>
+</html> 

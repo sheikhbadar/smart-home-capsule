@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home - Devices</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-home"></i>
+                <span>Smart Home</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li class="active"><a href="devices.html"><i class="fas fa-plug"></i> Devices</a></li>
+                <li><a href="automations.html"><i class="fas fa-robot"></i> Automations</a></li>
+                <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                <li><a href="api-test.html"><i class="fas fa-code"></i> API Test</a></li>
+                <li><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h1>Devices</h1>
+                <div class="user-info">
+                    <span id="username">User</span>
+                    <button id="logoutBtn">Logout</button>
+                </div>
+            </header>
+
+            <div class="devices-grid">
+                <!-- Lights Section -->
+                <div class="device-section">
+                    <h2>Lights</h2>
+                    <div class="device-cards">
+                        <div class="device-card" data-device="livingRoomLights">
+                            <div class="device-header">
+                                <i class="fas fa-lightbulb"></i>
+                                <h3>Living Room Lights</h3>
+                            </div>
+                            <div class="device-controls">
+                                <label class="switch">
+                                    <input type="checkbox" id="livingRoomLights-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="brightness-control">
+                                    <label>Brightness</label>
+                                    <input type="range" min="0" max="100" value="100" class="brightness-slider">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="device-card" data-device="kitchenLights">
+                            <div class="device-header">
+                                <i class="fas fa-lightbulb"></i>
+                                <h3>Kitchen Lights</h3>
+                            </div>
+                            <div class="device-controls">
+                                <label class="switch">
+                                    <input type="checkbox" id="kitchenLights-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="brightness-control">
+                                    <label>Brightness</label>
+                                    <input type="range" min="0" max="100" value="100" class="brightness-slider">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thermostat Section -->
+                <div class="device-section">
+                    <h2>Climate Control</h2>
+                    <div class="device-cards">
+                        <div class="device-card" data-device="thermostat">
+                            <div class="device-header">
+                                <i class="fas fa-thermometer-half"></i>
+                                <h3>Main Thermostat</h3>
+                            </div>
+                            <div class="device-controls">
+                                <label class="switch">
+                                    <input type="checkbox" id="thermostat-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="temperature-control">
+                                    <label>Temperature</label>
+                                    <div class="temp-display">
+                                        <span id="current-temp">72°F</span>
+                                        <div class="temp-buttons">
+                                            <button class="temp-btn" id="temp-down">-</button>
+                                            <button class="temp-btn" id="temp-up">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mode-control">
+                                    <label>Mode</label>
+                                    <select id="thermostat-mode">
+                                        <option value="heat">Heat</option>
+                                        <option value="cool">Cool</option>
+                                        <option value="auto">Auto</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Socket.io connection
+        const socket = io('http://localhost:3002');
+
+        // Authentication check
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Set username
+        const username = localStorage.getItem('username');
+        if (username) {
+            document.getElementById('username').textContent = username;
+        }
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = 'login.html';
+        });
+
+        // Device control functions
+        function updateDeviceState(deviceId, state) {
+            socket.emit('updateDeviceState', {
+                path: `devices.${deviceId}`,
+                data: state
+            });
+        }
+
+        // Event listeners for device controls
+        document.querySelectorAll('.device-card').forEach(card => {
+            const deviceId = card.dataset.device;
+            const toggle = card.querySelector('input[type="checkbox"]');
+            const brightnessSlider = card.querySelector('.brightness-slider');
+            const tempUp = card.querySelector('#temp-up');
+            const tempDown = card.querySelector('#temp-down');
+            const modeSelect = card.querySelector('#thermostat-mode');
+
+            if (toggle) {
+                toggle.addEventListener('change', () => {
+                    updateDeviceState(deviceId, { on: toggle.checked });
+                });
+            }
+
+            if (brightnessSlider) {
+                brightnessSlider.addEventListener('input', () => {
+                    updateDeviceState(deviceId, { brightness: parseInt(brightnessSlider.value) });
+                });
+            }
+
+            if (tempUp) {
+                tempUp.addEventListener('click', () => {
+                    const currentTemp = parseInt(document.getElementById('current-temp').textContent);
+                    updateDeviceState(deviceId, { target: currentTemp + 1 });
+                });
+            }
+
+            if (tempDown) {
+                tempDown.addEventListener('click', () => {
+                    const currentTemp = parseInt(document.getElementById('current-temp').textContent);
+                    updateDeviceState(deviceId, { target: currentTemp - 1 });
+                });
+            }
+
+            if (modeSelect) {
+                modeSelect.addEventListener('change', () => {
+                    updateDeviceState(deviceId, { mode: modeSelect.value });
+                });
+            }
+        });
+
+        // Socket event listeners
+        socket.on('deviceStateUpdated', (state) => {
+            // Update UI based on new state
+            Object.entries(state.devices).forEach(([deviceId, deviceState]) => {
+                const card = document.querySelector(`[data-device="${deviceId}"]`);
+                if (card) {
+                    const toggle = card.querySelector('input[type="checkbox"]');
+                    const brightnessSlider = card.querySelector('.brightness-slider');
+                    const currentTemp = card.querySelector('#current-temp');
+
+                    if (toggle) toggle.checked = deviceState.on;
+                    if (brightnessSlider) brightnessSlider.value = deviceState.brightness;
+                    if (currentTemp) currentTemp.textContent = `${deviceState.target}°F`;
+                }
+            });
+        });
+
+        // Initial state fetch
+        fetch('http://localhost:3002/api/state')
+            .then(response => response.json())
+            .then(state => {
+                Object.entries(state.devices).forEach(([deviceId, deviceState]) => {
+                    const card = document.querySelector(`[data-device="${deviceId}"]`);
+                    if (card) {
+                        const toggle = card.querySelector('input[type="checkbox"]');
+                        const brightnessSlider = card.querySelector('.brightness-slider');
+                        const currentTemp = card.querySelector('#current-temp');
+
+                        if (toggle) toggle.checked = deviceState.on;
+                        if (brightnessSlider) brightnessSlider.value = deviceState.brightness;
+                        if (currentTemp) currentTemp.textContent = `${deviceState.target}°F`;
+                    }
+                });
+            });
+    </script>
+</body>
+</html> 
