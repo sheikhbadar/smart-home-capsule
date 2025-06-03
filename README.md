@@ -4,6 +4,26 @@ A real-time smart home automation dashboard that allows you to control virtual d
 
 ---
 
+## 📸 Screenshots
+
+### Dashboard Overview
+![Dashboard Overview](screenshots/dashboard.png)
+*Main dashboard showing device controls and real-time status*
+
+### Device Controls
+![Device Controls](screenshots/device-controls.png)
+*Interactive device controls for lights, thermostat, and more*
+
+### Energy Analytics
+![Energy Analytics](screenshots/energy-analytics.png)
+*Real-time energy usage and cost analytics*
+
+### Webcam Integration
+![Webcam Integration](screenshots/webcam.png)
+*Webcam motion detection feature*
+
+---
+
 ## 🚀 Features
 
 - ⚡ Real-time device state updates using Socket.IO
