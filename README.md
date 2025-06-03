@@ -1,6 +1,6 @@
 # Smart Home Automation Simulation
 
-A real-time smart home automation dashboard that allows you to control virtual devices (lights, fans, doors) with instant updates across all connected clients.
+CAPSULE (Context-Aware Predictive Smart Home Use & Logic Engine) is a real-time simulated smart home automation dashboard system that allows you to control virtual devices (lights, fans, doors) with instant updates across all connected clients.
 
 ---
 
@@ -119,7 +119,7 @@ A real-time smart home automation dashboard that allows you to control virtual d
 ## ✨ Customization & Contribution
 
 - Fork the repo and submit pull requests for new features or improvements.
-- Suggestions for adding AI, advanced automation, or new device types are welcome!
+- Any suggestions are welcome!
 
 ---
 
