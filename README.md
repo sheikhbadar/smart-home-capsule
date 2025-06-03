@@ -13,6 +13,7 @@ A real-time smart home automation dashboard that allows you to control virtual d
 - 📷 Webcam motion detection (browser-based)
 - 🔒 Secure authentication with JWT & bcrypt
 - 📊 Energy usage and cost simulation
+- 💾 In-memory state management
 
 ---
 
