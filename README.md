@@ -5,10 +5,11 @@ CAPSULE (Context-Aware Predictive Smart Home Use & Logic Engine) is a real-time 
 ---
 
 ## 📸 Screenshots
-## 📊 System Architecture
+### 📊 System Architecture
+![Smart Home System Architecture](https://github.com/sheikhbadar/smart-home-capsule/blob/master/screenshots/architecture.png?raw=true)
 
-![Smart Home System Architecture](images/architecture.png)
-*System architecture showing the data flow between client, server, device management, energy monitoring, and error recovery components in the Smart Home Capsule platform.*
+*A high-level architecture diagram showing the flow between client, server, device management, energy monitoring, and error recovery in the Smart Home Capsule system.*
+
 ### Dashboard Overview
 ![Dashboard Overview](screenshots/dashboard.png)
 *Main dashboard showing device controls and real-time status*
