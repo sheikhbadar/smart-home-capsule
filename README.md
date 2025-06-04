@@ -1,3 +1,9 @@
+## 📄 License
+
+[![License: MIT](https://img.shields.io/github/license/sheikhbadar/smart-home-capsule)](https://github.com/sheikhbadar/smart-home-capsule/blob/master/LICENSE)
+
+
+
 # Smart Home Automation Simulation
 
 CAPSULE (Context-Aware Predictive Smart Home Use & Logic Engine) is a real-time simulated smart home automation dashboard system that allows you to control virtual devices (lights, fans, doors) with instant updates across all connected clients.
@@ -127,6 +133,4 @@ CAPSULE (Context-Aware Predictive Smart Home Use & Logic Engine) is a real-time 
 
 ---
 
-## 📄 License
 
-This project is open-source and available under the MIT License. 
